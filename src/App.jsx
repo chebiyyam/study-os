@@ -261,36 +261,35 @@ const SUMMER_PLAN = [
   { week:13, dates:"Aug 16–24",   focus:"MATH 308: 3.5–3.7 · PHYS 207: Ohm's Law, circuits, magnetic forces · MEEN 221: centroids · General review" },
 ];
 
-// ── WORKOUT ───────────────────────────────────────────────────────────────────
-const WORKOUT_PLAN = [
-  { day:"Day 1", title:"Rotational Power", exercises:[
-    { name:"Dumbbell woodchops (standing)",                sets:"4", reps:"12 each side" },
-    { name:"Single-arm dumbbell swing (explosive hip hinge)",sets:"3",reps:"15 each side" },
-    { name:"Rotational dumbbell press (lunge stance)",      sets:"3", reps:"10 each side" },
-    { name:"Plank with dumbbell drag",                      sets:"3", reps:"10 each side" },
-  ]},
-  { day:"Day 2", title:"Lower Body + Hip Drive", exercises:[
-    { name:"Goblet squat (both dumbbells)",                 sets:"4", reps:"12" },
-    { name:"Reverse lunge with rotation (1 DB)",            sets:"3", reps:"10 each side" },
-    { name:"Romanian deadlift",                             sets:"4", reps:"12" },
-    { name:"Lateral lunge",                                 sets:"3", reps:"10 each side" },
-    { name:"Glute bridge with dumbbell on hips",            sets:"3", reps:"15" },
-  ]},
-  { day:"Day 3", title:"Core + Upper Body", exercises:[
-    { name:"Dumbbell renegade row",                         sets:"3", reps:"8 each side" },
-    { name:"Single-arm dumbbell row (rotational finish)",   sets:"3", reps:"12 each side" },
-    { name:"Dumbbell lateral raise",                        sets:"3", reps:"15" },
-    { name:"Hollow body hold",                              sets:"3", reps:"30 sec" },
-    { name:"Russian twists (one dumbbell)",                 sets:"4", reps:"20" },
-  ]},
-];
-
 // ── STORAGE ───────────────────────────────────────────────────────────────────
 function load(key, def) {
   try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : def; } catch { return def; }
 }
 function save(key, val) {
   try { localStorage.setItem(key, JSON.stringify(val)); } catch {}
+}
+
+// ── DEFAULT PROGRESS SEED (as of Jun 17, 2026) ──────────────────────────────
+// MATH 251 weeks 1–3 done (through §13.2), ENGR 102 not started yet.
+function defaultWeekStatus() {
+  return {
+    "MATH251-w1": "done",
+    "MATH251-w2": "done",
+    "MATH251-w3": "in-progress", // 13.1 done, 13.2 done, 13.3 not yet
+  };
+}
+function defaultHwStatus() {
+  const done = {};
+  const mark = (sec, probs) => probs.forEach(p => { done[`MATH251-${sec}-${p}`] = true; });
+  mark("12.1", [1,5,7,9,11,13,15,17,19,22,23,25,27,29,31,33,35,37,39,41]);
+  mark("12.2", [1,5,9,11,13,15,17,19,21,23,25,27,29,31]);
+  mark("12.3", [1,3,5,7,9,11,15,17,19,21,23,25,27,39,41,43,47]);
+  mark("12.4", [1,3,5,13,14,15,17,19,21,29,31,33,35]);
+  mark("12.5", ["1–55 odd"]);
+  mark("12.6", [3,5,9,11,13,15,17,19,"21–28"]);
+  mark("13.1", ["1–13 odd","21–26"]);
+  mark("13.2", [3,5,7,9,11,13,17,19,21,23,25,27,35,37,39,41,42]);
+  return done;
 }
 
 // ── CURRENT SUMMER WEEK ───────────────────────────────────────────────────────
@@ -337,8 +336,8 @@ function Checkbox({ checked, onChange, color = "#7C6FCD" }) {
 // ── COURSE HUB ────────────────────────────────────────────────────────────────
 function CourseHub() {
   const [selected,     setSelected]     = useState("MATH251");
-  const [weekStatus,   setWeekStatus]   = useState(() => load("weekStatus", {}));
-  const [hwStatus,     setHwStatus]     = useState(() => load("hwStatus", {}));
+  const [weekStatus,   setWeekStatus]   = useState(() => load("weekStatus", defaultWeekStatus()));
+  const [hwStatus,     setHwStatus]     = useState(() => load("hwStatus", defaultHwStatus()));
   const [notes,        setNotes]        = useState(() => load("courseNotes", {}));
   const [expandedWeek, setExpandedWeek] = useState(null);
 
@@ -1062,7 +1061,9 @@ function WeeklyTasks() {
     SUMMER_PLAN.forEach(w => {
       const parts = w.focus.split("·").map(s => s.trim());
       parts.forEach(p => {
-        out.push({ id:`seed-w${w.week}-${p}`, week:w.week, dates:w.dates, text:p, done:false, course:null });
+        // Weeks 1–3: MATH 251 work is done (through §13.2); ENGR 102/Python not started yet.
+        const isDoneByDefault = w.week <= 3 && p.startsWith("MATH 251");
+        out.push({ id:`seed-w${w.week}-${p}`, week:w.week, dates:w.dates, text:p, done:isDoneByDefault, course:null });
       });
       out.push({
         id:`email-w${w.week}`,
@@ -1157,86 +1158,6 @@ function WeeklyTasks() {
   );
 }
 
-// ── WORKOUT ───────────────────────────────────────────────────────────────────
-function Workout() {
-  const [checked,   setChecked]   = useState(() => load("workoutChecked", {}));
-  const [activeDay, setActiveDay] = useState(0);
-
-  const toggle = key => { const n={...checked,[key]:!checked[key]}; setChecked(n); save("workoutChecked",n); };
-
-  const day    = WORKOUT_PLAN[activeDay];
-  const dayKey = `day${activeDay}`;
-  const total  = day.exercises.length;
-  const done   = day.exercises.filter((_,i)=>checked[`${dayKey}-${i}`]).length;
-
-  const resetDay = () => {
-    const n={...checked};
-    day.exercises.forEach((_,i)=>delete n[`${dayKey}-${i}`]);
-    setChecked(n); save("workoutChecked",n);
-  };
-
-  return (
-    <div style={{ maxWidth:520 }}>
-      <h2 style={{ margin:"0 0 24px", fontSize:20, fontWeight:600, color:"#E8E8ED" }}>Workout Plan</h2>
-
-      <div style={{ display:"flex", gap:8, marginBottom:24 }}>
-        {WORKOUT_PLAN.map((d,i) => {
-          const dk=`day${i}`;
-          const dDone=d.exercises.filter((_,j)=>checked[`${dk}-${j}`]).length;
-          const complete=dDone===d.exercises.length;
-          return (
-            <button key={i} onClick={()=>setActiveDay(i)} style={{
-              flex:1, padding:"10px 8px", borderRadius:10,
-              border:`1px solid ${activeDay===i ? "#7C6FCD" : complete ? "#4CAF8A40" : "#2A2A2E"}`,
-              background: activeDay===i ? "#7C6FCD15" : complete ? "#4CAF8A10" : "#141416",
-              cursor:"pointer", textAlign:"center",
-            }}>
-              <div style={{ fontFamily:"JetBrains Mono,monospace", fontSize:10, color: activeDay===i ? "#7C6FCD" : complete ? "#4CAF8A" : "#6B6B70", marginBottom:4 }}>{d.day}</div>
-              <div style={{ fontSize:11, color: activeDay===i ? "#E8E8ED" : "#A8A8B0", fontWeight:500 }}>{d.title}</div>
-              <div style={{ fontSize:10, color:"#6B6B70", marginTop:4 }}>{dDone}/{d.exercises.length}</div>
-            </button>
-          );
-        })}
-      </div>
-
-      <div style={{ background:"#141416", border:"1px solid #252528", borderRadius:12, padding:20 }}>
-        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16 }}>
-          <div>
-            <div style={{ fontFamily:"JetBrains Mono,monospace", fontSize:10, color:"#7C6FCD", marginBottom:4 }}>{day.day.toUpperCase()}</div>
-            <div style={{ fontSize:16, fontWeight:600, color:"#E8E8ED" }}>{day.title}</div>
-          </div>
-          <div style={{ display:"flex", alignItems:"center", gap:12 }}>
-            <div style={{ fontFamily:"JetBrains Mono,monospace", fontSize:13, color: done===total ? "#4CAF8A" : "#6B6B70" }}>{done}/{total}</div>
-            <button onClick={resetDay} style={{ background:"none", border:"1px solid #2A2A2E", borderRadius:6, padding:"4px 10px", color:"#6B6B70", fontSize:11, cursor:"pointer" }}>Reset</button>
-          </div>
-        </div>
-
-        <div style={{ height:3, background:"#1E1E22", borderRadius:2, marginBottom:20, overflow:"hidden" }}>
-          <div style={{ width:`${(done/total)*100}%`, height:"100%", background:"#7C6FCD", borderRadius:2, transition:"width 0.3s" }}/>
-        </div>
-
-        {day.exercises.map((ex,i) => {
-          const key=`${dayKey}-${i}`;
-          const isDone=checked[key];
-          return (
-            <div key={i} onClick={()=>toggle(key)} style={{
-              display:"flex", alignItems:"center", gap:14, padding:"12px 0",
-              borderBottom: i<day.exercises.length-1 ? "1px solid #1E1E22" : "none",
-              cursor:"pointer",
-            }}>
-              <Checkbox checked={isDone} onChange={()=>toggle(key)} color="#7C6FCD"/>
-              <div style={{ flex:1 }}>
-                <div style={{ fontSize:13, color: isDone ? "#4A4A52" : "#E8E8ED", textDecoration: isDone ? "line-through" : "none", marginBottom:2 }}>{ex.name}</div>
-                <div style={{ fontFamily:"JetBrains Mono,monospace", fontSize:11, color: isDone ? "#3A3A40" : "#7C6FCD" }}>{ex.sets} × {ex.reps}</div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
 // ── ROOT ──────────────────────────────────────────────────────────────────────
 const NAV = [
   { id:"hub",         label:"Course Hub",       icon:"book" },
@@ -1245,7 +1166,6 @@ const NAV = [
   { id:"gpa",         label:"Grade Calculator", icon:"calc" },
   { id:"timer",       label:"Focus Timer",      icon:"timer"},
   { id:"tasks",       label:"Tasks",            icon:"tasks"},
-  { id:"workout",     label:"Workout",          icon:"gym"  },
 ];
 
 export default function App() {
@@ -1269,7 +1189,7 @@ export default function App() {
         ))}
         <div style={{ marginTop:"auto", padding:"0 8px" }}>
           <div style={{ height:1, background:"#1A1A1E", marginBottom:12 }}/>
-          <div style={{ fontSize:11, color:"#4A4A52" }}>Phase 1 · v1.2</div>
+          <div style={{ fontSize:11, color:"#4A4A52" }}>Phase 1 · v1.3</div>
         </div>
       </div>
       <div style={{ flex:1, overflowY:"auto", padding:32 }}>
@@ -1279,7 +1199,6 @@ export default function App() {
         {tab==="gpa"          && <GpaCalc/>}
         {tab==="timer"        && <FocusTimer/>}
         {tab==="tasks"        && <WeeklyTasks/>}
-        {tab==="workout"      && <Workout/>}
       </div>
     </div>
   );
