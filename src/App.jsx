@@ -246,19 +246,19 @@ const COURSES = {
 
 // ── SUMMER PLAN ───────────────────────────────────────────────────────────────
 const SUMMER_PLAN = [
-  { week:1,  dates:"May 24–30",   focus:"MATH 251: 12.1–12.3 · ENGR 102: Python basics/syntax" },
-  { week:2,  dates:"May 31–Jun 6",focus:"MATH 251: 12.4–12.6 · ENGR 102: loops/functions/conditionals" },
-  { week:3,  dates:"Jun 7–13",    focus:"MATH 251: 13.1–13.3 · ENGR 102: lists/dicts, finish Python" },
-  { week:4,  dates:"Jun 14–20",   focus:"MATH 251: 13.4, 14.1 · PHYS 206: 1D/2D motion" },
-  { week:5,  dates:"Jun 21–27",   focus:"MATH 251: 14.3–14.5 · PHYS 206: Newton's Laws, Work & Energy" },
-  { week:6,  dates:"Jun 28–Jul 4",focus:"MATH 251: 14.6–14.7 · PHYS 206: Potential Energy, Conservation (NSC Jun 30–Jul 1)" },
-  { week:7,  dates:"Jul 5–11",    focus:"MATH 251: 14.8, 15.1–15.2 · PHYS 206: Torque, Angular Momentum, Rotational Motion" },
-  { week:8,  dates:"Jul 12–18",   focus:"MATH 251: 15.3, 15.5–15.6 · PHYS 206: Torque, Harmonic Motion · STAT 211: basic probability" },
-  { week:9,  dates:"Jul 19–25",   focus:"MATH 251: 15.7–15.9, 16.1 · STAT 211: random variables/distributions · MEEN 221: FBDs, equilibrium" },
-  { week:10, dates:"Jul 26–Aug 1",focus:"MATH 251: 16.2–16.4 · MATH 308: 1.1–1.3, 2.1 · MEEN 221: trusses, method of joints" },
-  { week:11, dates:"Aug 2–8",     focus:"MATH 308: 2.2–2.6 · PHYS 207: Coulomb's Law, E-Field, Electric Potential · MEEN 221: frames, friction" },
-  { week:12, dates:"Aug 9–15",    focus:"MATH 308: 3.1–3.4 · PHYS 207: Flux, Gauss's Law, Capacitors · STAT 211: hypothesis testing" },
-  { week:13, dates:"Aug 16–24",   focus:"MATH 308: 3.5–3.7 · PHYS 207: Ohm's Law, circuits, magnetic forces · MEEN 221: centroids · General review" },
+  { week:1,  dates:"May 24–30",   focus:"MATH 251: 12.1–12.3" },
+  { week:2,  dates:"May 31–Jun 6",focus:"MATH 251: 12.4–12.6" },
+  { week:3,  dates:"Jun 7–13",    focus:"MATH 251: 13.1–13.3" },
+  { week:4,  dates:"Jun 14–20",   focus:"MATH 251: 13.4, 14.1 · ENGR 102: Python basics/syntax, variables, conditionals" },
+  { week:5,  dates:"Jun 21–27",   focus:"MATH 251: 14.3–14.4 · ENGR 102: loops, functions, lists/dicts (finish Python)" },
+  { week:6,  dates:"Jun 28–Jul 4",focus:"MATH 251: 14.5–14.6 · PHYS 206: 1D/2D motion, Newton's Laws (NSC Jun 30–Jul 1, light week)" },
+  { week:7,  dates:"Jul 5–11",    focus:"MATH 251: 14.7–14.8 · PHYS 206: Work & Energy, Potential Energy/Conservation" },
+  { week:8,  dates:"Jul 12–18",   focus:"MATH 251: 15.1–15.2 · PHYS 206: Linear Momentum, Rotational Motion" },
+  { week:9,  dates:"Jul 19–25",   focus:"MATH 251: 15.3, 15.5–15.6 · PHYS 206: Torque, Harmonic Motion (finish)" },
+  { week:10, dates:"Jul 26–Aug 1",focus:"MATH 251: 15.7–15.9, 16.1 · STAT 211: basic probability, random variables" },
+  { week:11, dates:"Aug 2–8",     focus:"MATH 251: 16.2–16.4 (finish) · STAT 211: distributions · MEEN 221: FBDs, equilibrium" },
+  { week:12, dates:"Aug 9–15",    focus:"MATH 308: 1.1–1.3, 2.1–2.3 · MEEN 221: trusses, method of joints · STAT 211: hypothesis testing (finish)" },
+  { week:13, dates:"Aug 16–24",   focus:"MATH 308: 2.4–2.6, 3.1 · PHYS 207: Coulomb's Law, E-Field intro · MEEN 221: frames, friction, centroids · General review" },
 ];
 
 // ── STORAGE ───────────────────────────────────────────────────────────────────
@@ -1061,7 +1061,7 @@ function WeeklyTasks() {
     SUMMER_PLAN.forEach(w => {
       const parts = w.focus.split("·").map(s => s.trim());
       parts.forEach(p => {
-        // Weeks 1–3: MATH 251 work is done (through §13.2); ENGR 102/Python not started yet.
+        // Weeks 1–3 MATH 251 work is done (through §13.3 as of Jun 18); Python and everything else starts fresh.
         const isDoneByDefault = w.week <= 3 && p.startsWith("MATH 251");
         out.push({ id:`seed-w${w.week}-${p}`, week:w.week, dates:w.dates, text:p, done:isDoneByDefault, course:null });
       });
@@ -1189,7 +1189,7 @@ export default function App() {
         ))}
         <div style={{ marginTop:"auto", padding:"0 8px" }}>
           <div style={{ height:1, background:"#1A1A1E", marginBottom:12 }}/>
-          <div style={{ fontSize:11, color:"#4A4A52" }}>Phase 1 · v1.3</div>
+          <div style={{ fontSize:11, color:"#4A4A52" }}>Phase 1 · v1.4</div>
         </div>
       </div>
       <div style={{ flex:1, overflowY:"auto", padding:32 }}>
